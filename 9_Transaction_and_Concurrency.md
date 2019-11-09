@@ -111,6 +111,11 @@ WHERE productid=2
 ### Deadlocks
 A deadlock is a situation in which two or more processes block each other.
 	- Sqlserver detects the deadlock and intervenes by ternminating one of the transactions. Unless otherwise specified, Sqlserver chooses to terminate the transaction that did the least work, because it is cheapest to roll that transaction's work back.
+	- A few practice to mitigate deadlock occurance:
+		- Try to keep transactions as short as possible, taking activities out of the tran that aren't logically supposed to be part of the same unit of work.
+		- A deadlock happens when transactions access resources in inverse order.
+		- Good index design can help mitigate the occurance of deadlock.
+
 ```sql
 -- connection 1
 -- step 1
@@ -134,7 +139,4 @@ BEGIN TRAN
 COMMIT TRAN;
 
 ```
-	- A few practice to mitigate deadlock occurance:
-		- Try to keep transactions as short as possible, taking activities out of the tran that aren't logically supposed to be part of the same unit of work.
-		- A deadlock happens when transactions access resources in inverse order.
-		- Good index design can help mitigate the occurance of deadlock.
+
