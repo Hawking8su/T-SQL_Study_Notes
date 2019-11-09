@@ -177,15 +177,14 @@ Nonstandard.
 UPDATE OD
 	SET discount += 0.05
 FROM dbo.OrderDetails AS OD
-	JOIN dbo.Orders AS O
-		ON OD.orderid = O.orderid
+JOIN dbo.Orders AS O ON OD.orderid = O.orderid
 WHERE O.custid = 1;
 ---- standard SQL: using subqueries
 UPDATE dbo.OrderDetails
 	SET discount += 0.05
 WHERE EXISTS
 	(SELECT * FROM dbo.Orders AS O
-	 WHERE O.orderid = OrderDetails.orderid -- how to understand this part?
+	 WHERE O.orderid = OrderDetails.orderid -- use full table name before column
 		 AND O.custid = 1);
 ```
 NOTE--**Understanding EXISTS** Predicate:
@@ -201,14 +200,27 @@ In addition to filtering, the join also gives you access to attributes from othe
 ```SQL
 ---- UPDATE with JOIN using attributes from another table
 UPDATE T1
-	SET col1 = T2.col1,
-		  col2 = T2.col2,
-			col3 = T2.col3
+	SET col1 = T2.col1, 
+	    col2 = T2.col2, 
+	    col3 = T2.col3
 FROM dbo.T1 JOIN dbo.T2
 	ON T1.keycol = T2.keycol
 WHERE T2.col4 = 'ABC';
+
 ---- it will be lengthy and convoluted to rewrite the code above
----- using subqueries.
+---- using subqueries(Standard SQL).
+UPDATE T1 SET col1 = (SELECT col1 FROM T2 B where B.keycol = T1.keycol)
+	,  col2 = (SELECT col2 FROM T2 B where B.keycol = T1.keycol)
+	,  col3 = (SELECT col3 FROM T2 B where B.keycol = T1.keycol)
+WHERE EXISTS(SELECT 1 FROM T2 B
+	WHERE B.keycol = T1.keycol AND B.col4='ABC');
+
+---- The following standard SQL expression, which is called row construction,
+---- has not been fully implemented in sqlserver 2012.
+UPDATE T1 SET col1,col2,col3 = (SELECT col1,col2,col3 FROM T2 B where B.keycol = T1.keycol)
+WHERE EXISTS(SELECT 1 FROM T2 B
+	WHERE B.keycol = T1.keycol AND B.col4='ABC');
+
 ```
 
 #### Assignment UPDATE
